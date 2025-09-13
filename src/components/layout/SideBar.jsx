@@ -49,7 +49,7 @@ export default function SideBar() {
         <>
             {isMobile && isOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+                    className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-200"
                     onClick={() => setIsOpen(false)}
                 />
             )}
@@ -59,12 +59,12 @@ export default function SideBar() {
                 <div
                     className={`${
                         isOpen ? 'w-64' : 'w-[70px]'
-                    } h-screen shrink-0 transition-all duration-300`}
+                    } h-screen shrink-0 transition-all duration-200`}
                 ></div>
             )}
 
             {/* Mobile menu button */}
-            {isMobile && (
+            {isMobile && !isOpen && (
                 <button
                     onClick={toggleSidebar}
                     className="fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition-colors duration-200"
@@ -77,7 +77,7 @@ export default function SideBar() {
             <div
                 className={`flex flex-col
                 fixed left-0 top-0 h-screen bg-white shadow-xl border-r border-gray-200 z-40
-                transition-all duration-300 ease-in-out
+                transition-all duration-200 ease-in-out
                 ${isOpen ? 'w-64' : 'w-[70px]'}
                 ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
             `}
@@ -91,7 +91,7 @@ export default function SideBar() {
                         textSize="text-sm"
                     />
                     <div
-                        className={`transition-all duration-300 overflow-hidden ${
+                        className={`transition-all duration-200 overflow-hidden ${
                             isOpen
                                 ? 'opacity-100 max-w-full'
                                 : 'opacity-0 max-w-0'
@@ -112,6 +112,7 @@ export default function SideBar() {
                             <HiMenuAlt3 size={20} />
                         </button>
                     )}
+                    {isOpen && <span></span>}
                 </div>
 
                 <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -150,7 +151,7 @@ export default function SideBar() {
 
                                 <span
                                     className={`
-                                    font-medium transition-all duration-300 overflow-hidden whitespace-nowrap
+                                    font-medium transition-all duration-200 overflow-hidden whitespace-nowrap
                                     ${
                                         isOpen
                                             ? 'opacity-100 max-w-full'
@@ -170,7 +171,7 @@ export default function SideBar() {
                 <div className="p-4 w-full self-end border-t border-gray-200">
                     <div
                         className={`
-                        flex items-center gap-3 px-3 py-2 text-gray-500 transition-all duration-300 overflow-hidden
+                        flex items-center gap-3 px-3 py-2 text-gray-500 transition-all duration-200 overflow-hidden
                         ${
                             isOpen
                                 ? 'opacity-100 max-w-full'
