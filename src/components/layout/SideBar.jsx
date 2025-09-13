@@ -54,7 +54,6 @@ export default function SideBar() {
                 />
             )}
 
-            {/* Sidebar spacer for desktop */}
             {!isMobile && (
                 <div
                     className={`${
@@ -63,7 +62,6 @@ export default function SideBar() {
                 ></div>
             )}
 
-            {/* Mobile menu button */}
             {isMobile && !isOpen && (
                 <button
                     onClick={toggleSidebar}
@@ -82,7 +80,6 @@ export default function SideBar() {
                 ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
             `}
             >
-                {/* Header */}
                 <div className="flex justify-between items-center p-4 gap-2 border-b border-gray-200">
                     <Logo
                         onClick={() => setIsOpen(true)}
@@ -90,17 +87,19 @@ export default function SideBar() {
                         size="size-10"
                         textSize="text-sm"
                     />
-                    <div
-                        className={`transition-all duration-200 overflow-hidden ${
-                            isOpen
-                                ? 'opacity-100 max-w-full'
-                                : 'opacity-0 max-w-0'
-                        }`}
-                    >
-                        <span className="font-semibold text-lg text-gray-800 tracking-wide whitespace-nowrap">
-                            DASHBOARD
-                        </span>
-                    </div>
+                    {isOpen && (
+                        <div
+                            className={`transition-all duration-200 overflow-hidden ${
+                                isOpen
+                                    ? 'opacity-100 max-w-full'
+                                    : 'opacity-0 max-w-0'
+                            }`}
+                        >
+                            <span className="font-semibold text-lg text-gray-800 tracking-wide whitespace-nowrap">
+                                DASHBOARD
+                            </span>
+                        </div>
+                    )}
 
                     {!isMobile && isOpen && (
                         <button
@@ -166,8 +165,6 @@ export default function SideBar() {
                         );
                     })}
                 </nav>
-
-                {/* Footer */}
                 <div className="p-4 w-full self-end border-t border-gray-200">
                     <div
                         className={`
