@@ -72,6 +72,7 @@ const UltimateDataTable = ({
     // UI state
     const [showColumnSettings, setShowColumnSettings] = useState(false);
     const [showExportMenu, setShowExportMenu] = useState(false);
+    const [showSelectedExportMenu, setShowSelectedExportMenu] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [density, setDensity] = useState('normal');
 
@@ -439,35 +440,174 @@ const UltimateDataTable = ({
 
     const printTable = () => {
         try {
+            const visibleColumns = table
+                .getVisibleFlatColumns()
+                .filter(col => col.id !== 'select' && col.id !== 'actions');
+            const allData = table.getFilteredRowModel().rows.map(row => row.original);
+            
             const printWindow = window.open('', '_blank');
-            const tableHTML = tableRef.current?.innerHTML || '';
+            
+            // Create table HTML with proper headers
+            const tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            ${visibleColumns.map(col => `<th>${col.columnDef.header}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allData.map(rowData => 
+                            `<tr>
+                                ${visibleColumns.map(col => `<td>${rowData[col.id] || ''}</td>`).join('')}
+                            </tr>`
+                        ).join('')}
+                    </tbody>
+                </table>
+            `;
 
             printWindow.document.write(`
-        <html>
-          <head>
-            <title>${title}</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              table { border-collapse: collapse; width: 100%; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-              th { background-color: #f2f2f2; font-weight: bold; }
-              .no-print { display: none; }
-              button { display: none; }
-              input[type="checkbox"] { display: none; }
-            </style>
-          </head>
-          <body>
-            <h1>${title}</h1>
-            <p>Generated on: ${new Date().toLocaleString()}</p>
-            <p>Total records: ${totalCount}</p>
-            ${tableHTML}
-          </body>
-        </html>
-      `);
+                <html>
+                    <head>
+                        <title>${title}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            table { border-collapse: collapse; width: 100%; }
+                            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                            th { background-color: #f2f2f2; font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>${title}</h1>
+                        <p>Generated on: ${new Date().toLocaleString()}</p>
+                        <p>Total records: ${totalCount}</p>
+                        ${tableHTML}
+                    </body>
+                </html>
+            `);
 
             printWindow.document.close();
             printWindow.print();
             setShowExportMenu(false);
+        } catch (error) {
+            console.error('Print failed:', error);
+            alert('Print failed. Please try again.');
+        }
+    };
+
+    // Export functions for selected rows
+    const exportSelectedToCSV = () => {
+        try {
+            const visibleColumns = table
+                .getVisibleFlatColumns()
+                .filter(col => col.id !== 'select' && col.id !== 'actions');
+            const headers = visibleColumns
+                .map(col => col.columnDef.header)
+                .join(',');
+            const selectedData = selectedRows.map(row => row.original);
+            const rows = selectedData.map(rowData =>
+                visibleColumns
+                    .map(col => {
+                        const value = rowData[col.id];
+                        return typeof value === 'string' && value.includes(',')
+                            ? `"${value}"`
+                            : value || '';
+                    })
+                    .join(',')
+            );
+
+            const csvContent = [headers, ...rows].join('\n');
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `selected_${title.replace(/\s+/g, '_')}_${
+                new Date().toISOString().split('T')[0]
+            }.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            setShowSelectedExportMenu(false);
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert('Export failed. Please try again.');
+        }
+    };
+
+    const exportSelectedToJSON = () => {
+        try {
+            const selectedData = selectedRows.map(row => row.original);
+            const jsonContent = JSON.stringify(selectedData, null, 2);
+            const blob = new Blob([jsonContent], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `selected_${title.replace(/\s+/g, '_')}_${
+                new Date().toISOString().split('T')[0]
+            }.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            setShowSelectedExportMenu(false);
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert('Export failed. Please try again.');
+        }
+    };
+
+    const printSelectedRows = () => {
+        try {
+            const visibleColumns = table
+                .getVisibleFlatColumns()
+                .filter(col => col.id !== 'select' && col.id !== 'actions');
+            const selectedData = selectedRows.map(row => row.original);
+            
+            const printWindow = window.open('', '_blank');
+            
+            // Create table HTML for selected rows
+            const tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            ${visibleColumns.map(col => `<th>${col.columnDef.header}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${selectedData.map(rowData => 
+                            `<tr>
+                                ${visibleColumns.map(col => `<td>${rowData[col.id] || ''}</td>`).join('')}
+                            </tr>`
+                        ).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>${title} - Selected Items</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            table { border-collapse: collapse; width: 100%; }
+                            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                            th { background-color: #f2f2f2; font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>${title} - Selected Items</h1>
+                        <p>Generated on: ${new Date().toLocaleString()}</p>
+                        <p>Selected records: ${selectedCount}</p>
+                        ${tableHTML}
+                    </body>
+                </html>
+            `);
+
+            printWindow.document.close();
+            printWindow.print();
+            setShowSelectedExportMenu(false);
         } catch (error) {
             console.error('Print failed:', error);
             alert('Print failed. Please try again.');
@@ -598,6 +738,9 @@ const UltimateDataTable = ({
             }
             if (!event.target.closest('.column-settings')) {
                 setShowColumnSettings(false);
+            }
+            if (!event.target.closest('.selected-export-menu')) {
+                setShowSelectedExportMenu(false);
             }
         };
 
@@ -847,61 +990,42 @@ const UltimateDataTable = ({
                                         {selectedCount > 1 ? 's' : ''} selected
                                     </span>
                                     <div className="flex items-center space-x-2">
-                                        <button
-                                            onClick={() => {
-                                                try {
-                                                    const selectedData =
-                                                        selectedRows.map(
-                                                            row => row.original
-                                                        );
-                                                    const jsonContent =
-                                                        JSON.stringify(
-                                                            selectedData,
-                                                            null,
-                                                            2
-                                                        );
-                                                    const blob = new Blob(
-                                                        [jsonContent],
-                                                        {
-                                                            type: 'application/json'
-                                                        }
-                                                    );
-                                                    const url =
-                                                        window.URL.createObjectURL(
-                                                            blob
-                                                        );
-                                                    const a =
-                                                        document.createElement(
-                                                            'a'
-                                                        );
-                                                    a.href = url;
-                                                    a.download = `selected_items_${
-                                                        new Date()
-                                                            .toISOString()
-                                                            .split('T')[0]
-                                                    }.json`;
-                                                    document.body.appendChild(
-                                                        a
-                                                    );
-                                                    a.click();
-                                                    document.body.removeChild(
-                                                        a
-                                                    );
-                                                    window.URL.revokeObjectURL(
-                                                        url
-                                                    );
-                                                } catch (error) {
-                                                    console.error(
-                                                        'Export failed:',
-                                                        error
-                                                    );
-                                                }
-                                            }}
-                                            className="flex items-center space-x-1 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                                        >
-                                            <MdDownload className="w-4 h-4" />
-                                            <span>Export Selected</span>
-                                        </button>
+                                        <div className="relative selected-export-menu">
+                                            <button
+                                                onClick={() => setShowSelectedExportMenu(!showSelectedExportMenu)}
+                                                className="flex items-center space-x-1 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                                            >
+                                                <MdDownload className="w-4 h-4" />
+                                                <span>Export Selected</span>
+                                                <MdExpandMore className={`w-4 h-4 transition-transform ${showSelectedExportMenu ? 'rotate-180' : ''}`} />
+                                            </button>
+                                            
+                                            {showSelectedExportMenu && (
+                                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[160px]">
+                                                    <button
+                                                        onClick={exportSelectedToCSV}
+                                                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                                    >
+                                                        <MdDownload className="w-4 h-4" />
+                                                        Export as CSV
+                                                    </button>
+                                                    <button
+                                                        onClick={exportSelectedToJSON}
+                                                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                                    >
+                                                        <MdDownload className="w-4 h-4" />
+                                                        Export as JSON
+                                                    </button>
+                                                    <button
+                                                        onClick={printSelectedRows}
+                                                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                                    >
+                                                        <MdPrint className="w-4 h-4" />
+                                                        Print Selected
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                         <button
                                             onClick={() => {
                                                 if (

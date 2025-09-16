@@ -147,9 +147,9 @@ export default function Users() {
     );
 
     return (
-        <div className="p-6 overflow-x-auto">
-            <h1 className="text-2xl font-bold mb-6">Custom Columns Example</h1>
+        <div className=" overflow-x-auto">
             <Table
+                title='Users'
                 data={[
                     {
                         id: 1,

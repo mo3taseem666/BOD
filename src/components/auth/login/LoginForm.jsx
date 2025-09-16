@@ -1,14 +1,16 @@
 import React from 'react';
-import { loginSchema as schema } from '../../../utils/yup/loginSchema';
 import InputRFH from '@/components/common/inputs/InputRFH';
 import useRFH from '@/utils/hooks/useRFH';
-import DemoCredentials from '../mini components/DemoCredentials';
 import Btn from '@/components/common/buttons/Btn';
 import useCustomMutation from '@/utils/hooks/useCustomMutation';
 import useAuthApis from '@/backend helper/api calls/auth.apis';
-import useAuthSuccess from '../hooks/useAuthSuccess';
-import { loginDefaultValues as defaultValues } from '../configs/defaultValues';
-import { loginFields } from '../configs/formsFields';
+import {
+    loginDefaultValues as defaultValues,
+    loginFields
+} from '@/features/auth/configs';
+import DemoCredentials from './DemoCredentials';
+import { loginSchema as schema } from '@/utils/yup/loginSchema';
+import useAuthSuccess from '@/utils/hooks/auth/useAuthSuccess';
 
 export default function LoginForm() {
     const { register, errors, handleSubmit } = useRFH({
