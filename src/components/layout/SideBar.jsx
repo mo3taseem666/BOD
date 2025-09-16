@@ -73,7 +73,7 @@ export default function SideBar() {
             )}
 
             <div
-                className={`flex flex-col
+                className={`flex shrink-0 flex-col
                 fixed left-0 top-0 h-screen bg-white shadow-xl border-r border-gray-200 z-40
                 transition-all duration-200 ease-in-out
                 ${isOpen ? 'w-64' : 'w-[70px]'}

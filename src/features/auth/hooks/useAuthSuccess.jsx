@@ -1,3 +1,4 @@
+import { successMsg } from '@/backend helper/handlers/successHandler';
 import { useUserStore } from '@/utils/stores/user.store';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +11,7 @@ export default function useAuthSuccess() {
         console.log(data);
         const { success, user, ...rest } = data;
         login({ ...rest, ...user });
+        successMsg('Login successful');
         navigate('/');
     }
 
