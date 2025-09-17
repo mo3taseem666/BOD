@@ -1,8 +1,8 @@
 import React from 'react';
 import InputRFH from '@/components/common/inputs/InputRFH';
-import useRFH from '@/utils/hooks/useRFH';
+import useRFH from '@/utils/hooks/global/useRFH';
 import Btn from '@/components/common/buttons/Btn';
-import useCustomMutation from '@/utils/hooks/useCustomMutation';
+import useCustomMutation from '@/utils/hooks/global/useCustomMutation';
 import useAuthApis from '@/backend helper/api calls/auth.apis';
 import {
     loginDefaultValues as defaultValues,

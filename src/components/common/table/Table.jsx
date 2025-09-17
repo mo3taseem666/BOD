@@ -38,8 +38,16 @@ import {
     MdShare,
     MdInfo
 } from 'react-icons/md';
+import NameEmailCell from './cells/NameEmailCell';
+import IdCell from './cells/IdCell';
+import RoleCell from './cells/RoleCell';
+import Cell from './cells/Cell';
+import StatusCell from './cells/StatusCell';
 
 // Enhanced mock data
+
+// Create column helper outside component to prevent re-renders
+const columnHelper = createColumnHelper();
 
 const UltimateDataTable = ({
     data,
@@ -56,9 +64,6 @@ const UltimateDataTable = ({
     customActions = []
 }) => {
     // Core state
-
-    console.log('LOGGED');
-
     const [pagination, setPagination] = useState({
         pageIndex: 0,
         pageSize: 10
@@ -79,7 +84,6 @@ const UltimateDataTable = ({
     const tableRef = useRef(null);
 
     // Enhanced columns with selection
-    const columnHelper = createColumnHelper();
     const defaultColumns = useMemo(() => {
         const baseColumns = [
             // Selection column
@@ -117,110 +121,31 @@ const UltimateDataTable = ({
             columnHelper.accessor('id', {
                 header: 'ID',
                 size: 80,
-                cell: info => (
-                    <div className="font-mono text-sm font-medium text-blue-600">
-                        #{info.getValue()}
-                    </div>
-                )
+                cell: info => <IdCell info={info} />
             }),
 
             // Name column
             columnHelper.accessor('name', {
                 header: 'Employee',
-                cell: info => {
-                    const row = info.row.original;
-                    const initials = info
-                        .getValue()
-                        .split(' ')
-                        .map(n => n[0])
-                        .join('');
-                    return (
-                        <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                                {initials}
-                            </div>
-                            <div>
-                                <div className="font-medium text-gray-900">
-                                    {info.getValue()}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                    {row.email}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                }
+                cell: info => <NameEmailCell info={info} />
             }),
 
             // Role column
             columnHelper.accessor('role', {
                 header: 'Role',
-                cell: info => {
-                    const role = info.getValue();
-                    const roleColors = {
-                        admin: 'bg-red-100 text-red-800 border-red-200',
-                        manager:
-                            'bg-purple-100 text-purple-800 border-purple-200',
-                        user: 'bg-blue-100 text-blue-800 border-blue-200',
-                        editor: 'bg-green-100 text-green-800 border-green-200',
-                        viewer: 'bg-gray-100 text-gray-800 border-gray-200'
-                    };
-                    return (
-                        <span
-                            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
-                                roleColors[role] || roleColors.user
-                            }`}
-                        >
-                            {role.charAt(0).toUpperCase() + role.slice(1)}
-                        </span>
-                    );
-                }
+                cell: info => <RoleCell info={info} />
             }),
 
             // Department column
             columnHelper.accessor('department', {
                 header: 'Department',
-                cell: info => (
-                    <div className="text-sm text-gray-700 font-medium">
-                        {info.getValue()}
-                    </div>
-                )
+                cell: info => <Cell info={info} />
             }),
 
             // Status column
             columnHelper.accessor('status', {
                 header: 'Status',
-                cell: info => {
-                    const status = info.getValue();
-                    const statusColors = {
-                        active: 'bg-green-100 text-green-800 border-green-200',
-                        inactive: 'bg-red-100 text-red-800 border-red-200',
-                        pending:
-                            'bg-yellow-100 text-yellow-800 border-yellow-200',
-                        archived: 'bg-gray-100 text-gray-800 border-gray-200'
-                    };
-                    const dotColor = {
-                        active: 'bg-green-500',
-                        inactive: 'bg-red-500',
-                        pending: 'bg-yellow-500',
-                        archived: 'bg-gray-500'
-                    };
-                    return (
-                        <div className="flex items-center space-x-2">
-                            <div
-                                className={`w-2 h-2 rounded-full ${dotColor[status]}`}
-                            />
-                            <span
-                                className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
-                                    statusColors[status] || statusColors.pending
-                                }`}
-                            >
-                                {status.charAt(0).toUpperCase() +
-                                    status.slice(1)}
-                            </span>
-                        </div>
-                    );
-                }
+                cell: info => <StatusCell info={info} />
             }),
 
             // Salary column
@@ -443,24 +368,36 @@ const UltimateDataTable = ({
             const visibleColumns = table
                 .getVisibleFlatColumns()
                 .filter(col => col.id !== 'select' && col.id !== 'actions');
-            const allData = table.getFilteredRowModel().rows.map(row => row.original);
-            
+            const allData = table
+                .getFilteredRowModel()
+                .rows.map(row => row.original);
+
             const printWindow = window.open('', '_blank');
-            
+
             // Create table HTML with proper headers
             const tableHTML = `
                 <table>
                     <thead>
                         <tr>
-                            ${visibleColumns.map(col => `<th>${col.columnDef.header}</th>`).join('')}
+                            ${visibleColumns
+                                .map(col => `<th>${col.columnDef.header}</th>`)
+                                .join('')}
                         </tr>
                     </thead>
                     <tbody>
-                        ${allData.map(rowData => 
-                            `<tr>
-                                ${visibleColumns.map(col => `<td>${rowData[col.id] || ''}</td>`).join('')}
+                        ${allData
+                            .map(
+                                rowData =>
+                                    `<tr>
+                                ${visibleColumns
+                                    .map(
+                                        col =>
+                                            `<td>${rowData[col.id] || ''}</td>`
+                                    )
+                                    .join('')}
                             </tr>`
-                        ).join('')}
+                            )
+                            .join('')}
                     </tbody>
                 </table>
             `;
@@ -564,23 +501,33 @@ const UltimateDataTable = ({
                 .getVisibleFlatColumns()
                 .filter(col => col.id !== 'select' && col.id !== 'actions');
             const selectedData = selectedRows.map(row => row.original);
-            
+
             const printWindow = window.open('', '_blank');
-            
+
             // Create table HTML for selected rows
             const tableHTML = `
                 <table>
                     <thead>
                         <tr>
-                            ${visibleColumns.map(col => `<th>${col.columnDef.header}</th>`).join('')}
+                            ${visibleColumns
+                                .map(col => `<th>${col.columnDef.header}</th>`)
+                                .join('')}
                         </tr>
                     </thead>
                     <tbody>
-                        ${selectedData.map(rowData => 
-                            `<tr>
-                                ${visibleColumns.map(col => `<td>${rowData[col.id] || ''}</td>`).join('')}
+                        ${selectedData
+                            .map(
+                                rowData =>
+                                    `<tr>
+                                ${visibleColumns
+                                    .map(
+                                        col =>
+                                            `<td>${rowData[col.id] || ''}</td>`
+                                    )
+                                    .join('')}
                             </tr>`
-                        ).join('')}
+                            )
+                            .join('')}
                     </tbody>
                 </table>
             `;
@@ -992,32 +939,48 @@ const UltimateDataTable = ({
                                     <div className="flex items-center space-x-2">
                                         <div className="relative selected-export-menu">
                                             <button
-                                                onClick={() => setShowSelectedExportMenu(!showSelectedExportMenu)}
+                                                onClick={() =>
+                                                    setShowSelectedExportMenu(
+                                                        !showSelectedExportMenu
+                                                    )
+                                                }
                                                 className="flex items-center space-x-1 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
                                             >
                                                 <MdDownload className="w-4 h-4" />
                                                 <span>Export Selected</span>
-                                                <MdExpandMore className={`w-4 h-4 transition-transform ${showSelectedExportMenu ? 'rotate-180' : ''}`} />
+                                                <MdExpandMore
+                                                    className={`w-4 h-4 transition-transform ${
+                                                        showSelectedExportMenu
+                                                            ? 'rotate-180'
+                                                            : ''
+                                                    }`}
+                                                />
                                             </button>
-                                            
+
                                             {showSelectedExportMenu && (
                                                 <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-[160px]">
                                                     <button
-                                                        onClick={exportSelectedToCSV}
+                                                        onClick={
+                                                            exportSelectedToCSV
+                                                        }
                                                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                                     >
                                                         <MdDownload className="w-4 h-4" />
                                                         Export as CSV
                                                     </button>
                                                     <button
-                                                        onClick={exportSelectedToJSON}
+                                                        onClick={
+                                                            exportSelectedToJSON
+                                                        }
                                                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                                     >
                                                         <MdDownload className="w-4 h-4" />
                                                         Export as JSON
                                                     </button>
                                                     <button
-                                                        onClick={printSelectedRows}
+                                                        onClick={
+                                                            printSelectedRows
+                                                        }
                                                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                                     >
                                                         <MdPrint className="w-4 h-4" />
