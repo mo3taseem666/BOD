@@ -1,17 +1,14 @@
 import useAxios from '@/configs/api/useAxios';
 import { useUserStore } from '@/utils/stores/user.store';
 
-export default function POST() {
+export default function DELETE() {
     const api = useAxios();
     const token = useUserStore(state => state.user?.token) || '';
 
-    async function post({ url, data, isFormData = false }) {
+    async function deleteFn({ url }) {
         try {
-            const res = await api.post(url, data, {
+            const res = await api.delete(url, {
                 headers: {
-                    'Content-Type': isFormData
-                        ? 'multipart/form-data'
-                        : 'application/json',
                     Authorization: `Bearer ${token}`
                 }
             });
@@ -21,10 +18,12 @@ export default function POST() {
         } catch (error) {
             console.log(error);
             throw new Error(
-                error.response?.data?.message || error.response?.data?.error?.[0]|| 'check error response'
+                error.response?.data?.message ||
+                    error.response?.data?.error?.[0] ||
+                    'check error response'
             );
         }
     }
 
-    return post;
+    return deleteFn;
 }

@@ -5,7 +5,8 @@ export default function useRFH({ schema, defaultValues = {} }) {
     const {
         register,
         handleSubmit,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting },
+        control
     } = useForm({
         resolver: yupResolver(schema),
         defaultValues
@@ -15,6 +16,7 @@ export default function useRFH({ schema, defaultValues = {} }) {
         register,
         handleSubmit,
         errors,
-        isSubmitting
+        isSubmitting,
+        control
     };
 }

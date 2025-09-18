@@ -1,13 +1,13 @@
 import useAxios from '@/configs/api/useAxios';
 import { useUserStore } from '@/utils/stores/user.store';
 
-export default function POST() {
+export default function PUT() {
     const api = useAxios();
     const token = useUserStore(state => state.user?.token) || '';
 
-    async function post({ url, data, isFormData = false }) {
+    async function put({ url, data, isFormData = false }) {
         try {
-            const res = await api.post(url, data, {
+            const res = await api.put(url, data, {
                 headers: {
                     'Content-Type': isFormData
                         ? 'multipart/form-data'
@@ -26,5 +26,5 @@ export default function POST() {
         }
     }
 
-    return post;
+    return put;
 }

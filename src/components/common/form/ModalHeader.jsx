@@ -1,8 +1,8 @@
 import React from 'react';
 
-export default function FormHeader({ setIsModalOpen, header }) {
+export default function ModalHeader({ onClose, header }) {
     return (
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex p-5 border-b border-gray-300 justify-between items-center mb-4">
             <h2
                 id="modal-title"
                 className="text-xl font-semibold text-gray-800"
@@ -10,8 +10,8 @@ export default function FormHeader({ setIsModalOpen, header }) {
                 {header}
             </h2>
             <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                onClick={() => onClose(false)}
+                className="text-gray-400 hover:text-red-600 text-4xl duration-200 leading-none"
             >
                 ×
             </button>

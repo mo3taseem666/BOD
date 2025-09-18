@@ -1,17 +1,26 @@
+import SelectRFH from "./SelectRFH";
+
 export default function InputRFH({
     error,
     label,
     placeholder,
     name,
     type = 'text',
-    register
+    register,
+    options,
+    control,
+    defaultValue
 }) {
+
+    if (type === 'select') {
+        return <SelectRFH defaultValue={defaultValue} control={control} register={register} error={error} label={label} name={name} options={options} placeholder={placeholder} />
+    }
     return (
         <div>
             {label && (
                 <label
                     htmlFor={name}
-                    className="block text-sm font-medium text-gray-700 mb-1 font-montserrat"
+                    className="block  font-medium text-gray-700 mb-1 font-montserrat"
                 >
                     {label}
                 </label>

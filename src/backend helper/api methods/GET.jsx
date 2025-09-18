@@ -17,7 +17,7 @@ export default function GET() {
             console.log(`response from ${url}`, res.data);
             return res.data;
         } catch (error) {
-            console.log(error.response?.data?.message);
+            console.log(error);
             throw new Error(
                 error.response?.data?.message || 'check error response'
             );

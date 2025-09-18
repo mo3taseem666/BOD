@@ -3,5 +3,8 @@ export const authApis = {
 };
 
 export const userApis = {
-    get: 'users'
+    get: 'users',
+    post: 'users',
+    put: 'users',
+    delete: 'users'
 };

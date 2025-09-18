@@ -38,11 +38,6 @@ import {
     MdShare,
     MdInfo
 } from 'react-icons/md';
-import NameEmailCell from './cells/NameEmailCell';
-import IdCell from './cells/IdCell';
-import RoleCell from './cells/RoleCell';
-import Cell from './cells/Cell';
-import StatusCell from './cells/StatusCell';
 
 // Enhanced mock data
 
@@ -51,7 +46,7 @@ const columnHelper = createColumnHelper();
 
 const UltimateDataTable = ({
     data,
-    columns: externalColumns,
+    columns: externalColumns = [],
     onServerAction,
     loading = false,
     serverPagination = false,
@@ -61,13 +56,14 @@ const UltimateDataTable = ({
     enableRowSelection = true,
     enableExport = true,
     onRowClick,
-    customActions = []
+    customActions = [],
+    refresh,
+    toggleModals,
+    pagination,
+    setPagination,
 }) => {
     // Core state
-    const [pagination, setPagination] = useState({
-        pageIndex: 0,
-        pageSize: 10
-    });
+
     const [sorting, setSorting] = useState([]);
     const [columnFilters, setColumnFilters] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
@@ -84,194 +80,92 @@ const UltimateDataTable = ({
     const tableRef = useRef(null);
 
     // Enhanced columns with selection
-    const defaultColumns = useMemo(() => {
-        const baseColumns = [
-            // Selection column
-            columnHelper.display({
-                id: 'select',
-                size: 50,
-                header: ({ table }) => (
-                    <div className="flex items-center justify-center">
-                        <input
-                            type="checkbox"
-                            checked={table.getIsAllRowsSelected()}
-                            ref={input => {
-                                if (input)
-                                    input.indeterminate =
-                                        table.getIsSomeRowsSelected();
-                            }}
-                            onChange={table.getToggleAllRowsSelectedHandler()}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                    </div>
-                ),
-                cell: ({ row }) => (
-                    <div className="flex items-center justify-center">
-                        <input
-                            type="checkbox"
-                            checked={row.getIsSelected()}
-                            onChange={row.getToggleSelectedHandler()}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                    </div>
-                )
-            }),
 
-            // ID column
-            columnHelper.accessor('id', {
-                header: 'ID',
-                size: 80,
-                cell: info => <IdCell info={info} />
-            }),
+    const SELECT = columnHelper.display({
+        id: 'select',
+        size: 50,
+        header: ({ table }) => (
+            <div className="flex items-center justify-center">
+                <input
+                    type="checkbox"
+                    checked={table.getIsAllRowsSelected()}
+                    ref={input => {
+                        if (input)
+                            input.indeterminate = table.getIsSomeRowsSelected();
+                    }}
+                    onChange={table.getToggleAllRowsSelectedHandler()}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+            </div>
+        ),
+        cell: ({ row }) => (
+            <div className="flex items-center justify-center">
+                <input
+                    type="checkbox"
+                    checked={row.getIsSelected()}
+                    onChange={row.getToggleSelectedHandler()}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+            </div>
+        )
+    });
 
-            // Name column
-            columnHelper.accessor('name', {
-                header: 'Employee',
-                cell: info => <NameEmailCell info={info} />
-            }),
+    const ACTIONS = columnHelper.display({
+        id: 'actions',
+        header: 'Actions',
+        size: 120,
+        cell: ({ row }) => (
+            <div className="flex items-center space-x-1">
+                <button
+                    onClick={e => {
+                        e.stopPropagation();
+                        toggleModals.edit(row.original);
+                    }}
+                    className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                    title="Edit"
+                >
+                    <MdEdit className="w-4 h-4" />
+                </button>
+                <button
+                    onClick={e => {
+                        e.stopPropagation();
+                        try {
+                            navigator.clipboard.writeText(
+                                JSON.stringify(row.original, null, 2)
+                            );
+                            alert('Row data copied to clipboard!');
+                        } catch (err) {
+                            console.log('Copy failed:', err);
+                        }
+                    }}
+                    className="p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded transition-colors"
+                    title="Copy"
+                >
+                    <MdContentCopy className="w-4 h-4" />
+                </button>
+                <button
+                    onClick={e => {
+                        e.stopPropagation();
+                        toggleModals.delete(row.original);
+                    }}
+                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+                    title="Delete"
+                >
+                    <MdDelete className="w-4 h-4" />
+                </button>
+            </div>
+        )
+    });
 
-            // Role column
-            columnHelper.accessor('role', {
-                header: 'Role',
-                cell: info => <RoleCell info={info} />
-            }),
-
-            // Department column
-            columnHelper.accessor('department', {
-                header: 'Department',
-                cell: info => <Cell info={info} />
-            }),
-
-            // Status column
-            columnHelper.accessor('status', {
-                header: 'Status',
-                cell: info => <StatusCell info={info} />
-            }),
-
-            // Salary column
-            columnHelper.accessor('salary', {
-                header: 'Salary',
-                cell: info => (
-                    <div className="text-sm font-medium text-green-600">
-                        ${info.getValue()?.toLocaleString()}
-                    </div>
-                )
-            }),
-
-            // Performance column
-            columnHelper.accessor('performance', {
-                header: 'Performance',
-                cell: info => {
-                    const value = info.getValue();
-                    const color =
-                        value >= 80
-                            ? 'bg-green-500'
-                            : value >= 60
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500';
-                    const textColor =
-                        value >= 80
-                            ? 'text-green-600 bg-green-100'
-                            : value >= 60
-                            ? 'text-yellow-600 bg-yellow-100'
-                            : 'text-red-600 bg-red-100';
-                    return (
-                        <div className="flex items-center space-x-2">
-                            <div className="w-full bg-gray-200 rounded-full h-2 max-w-20">
-                                <div
-                                    className={`h-2 rounded-full ${color}`}
-                                    style={{ width: `${value}%` }}
-                                />
-                            </div>
-                            <span
-                                className={`text-xs font-medium px-2 py-1 rounded ${textColor}`}
-                            >
-                                {value}%
-                            </span>
-                        </div>
-                    );
-                }
-            }),
-
-            // Created date column
-            columnHelper.accessor('createdAt', {
-                header: 'Joined',
-                cell: info => (
-                    <div className="text-sm text-gray-600">
-                        {new Date(info.getValue()).toLocaleDateString()}
-                    </div>
-                )
-            }),
-
-            // Actions column
-            columnHelper.display({
-                id: 'actions',
-                header: 'Actions',
-                size: 120,
-                cell: ({ row }) => (
-                    <div className="flex items-center space-x-1">
-                        <button
-                            onClick={e => {
-                                e.stopPropagation();
-                                console.log('Edit', row.original);
-                            }}
-                            className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                            title="Edit"
-                        >
-                            <MdEdit className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={e => {
-                                e.stopPropagation();
-                                try {
-                                    navigator.clipboard.writeText(
-                                        JSON.stringify(row.original, null, 2)
-                                    );
-                                    alert('Row data copied to clipboard!');
-                                } catch (err) {
-                                    console.log('Copy failed:', err);
-                                }
-                            }}
-                            className="p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded transition-colors"
-                            title="Copy"
-                        >
-                            <MdContentCopy className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={e => {
-                                e.stopPropagation();
-                                if (
-                                    window.confirm(
-                                        'Are you sure you want to delete this item?'
-                                    )
-                                ) {
-                                    console.log('Delete', row.original);
-                                }
-                            }}
-                            className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
-                            title="Delete"
-                        >
-                            <MdDelete className="w-4 h-4" />
-                        </button>
-                    </div>
-                )
-            })
-        ];
-
-        return enableRowSelection ? baseColumns : baseColumns.slice(1);
-    }, [enableRowSelection]);
-
-    const columns = externalColumns || defaultColumns;
+    const columns = [SELECT, ...externalColumns, ACTIONS];
 
     // Table instance
     const table = useReactTable({
         data: data || [],
         columns,
         getCoreRowModel: getCoreRowModel(),
-        getFilteredRowModel: serverPagination
-            ? undefined
-            : getFilteredRowModel(),
-        getSortedRowModel: serverPagination ? undefined : getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: serverPagination
             ? undefined
             : getPaginationRowModel(),
@@ -293,8 +187,8 @@ const UltimateDataTable = ({
             ? Math.ceil(totalCount / pagination.pageSize)
             : undefined,
         manualPagination: serverPagination,
-        manualSorting: serverPagination,
-        manualFiltering: serverPagination,
+        manualSorting: false, // Keep client-side sorting enabled
+        manualFiltering: false, // Keep client-side filtering enabled
         enableRowSelection: enableRowSelection
     });
 
@@ -780,8 +674,8 @@ const UltimateDataTable = ({
                                 <MdSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Search across all columns..."
-                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80"
+                                    placeholder="Search across columns..."
+                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm outline-none duration-200 focus:border-blue-500 w-80"
                                     value={globalFilter ?? ''}
                                     onChange={e =>
                                         setGlobalFilter(e.target.value)
@@ -800,7 +694,10 @@ const UltimateDataTable = ({
                             {/* Action Buttons */}
                             <div className="flex items-center space-x-2">
                                 {/* Add Button */}
-                                <button className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                <button
+                                    onClick={toggleModals.add}
+                                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                >
                                     <MdAdd className="w-4 h-4" />
                                     <span className="text-sm font-medium">
                                         Add New
@@ -914,7 +811,7 @@ const UltimateDataTable = ({
 
                                 {/* Refresh Button */}
                                 <button
-                                    onClick={() => window.location.reload()}
+                                    onClick={refresh}
                                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                                     disabled={loading}
                                     title="Refresh data"
@@ -989,7 +886,7 @@ const UltimateDataTable = ({
                                                 </div>
                                             )}
                                         </div>
-                                        <button
+                                        {/* <button
                                             onClick={() => {
                                                 if (
                                                     window.confirm(
@@ -1009,7 +906,7 @@ const UltimateDataTable = ({
                                         >
                                             <MdDelete className="w-4 h-4" />
                                             <span>Delete Selected</span>
-                                        </button>
+                                        </button> */}
                                     </div>
                                 </div>
                                 <button

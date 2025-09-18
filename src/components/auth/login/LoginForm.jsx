@@ -11,6 +11,7 @@ import {
 import DemoCredentials from './DemoCredentials';
 import { loginSchema as schema } from '@/utils/yup/loginSchema';
 import useAuthSuccess from '@/utils/hooks/auth/useAuthSuccess';
+import { userRoles } from '@/utils/constants/options';
 
 export default function LoginForm() {
     const { register, errors, handleSubmit } = useRFH({
@@ -21,9 +22,15 @@ export default function LoginForm() {
     const { loginFN: mutationFn } = useAuthApis();
     const { mutate, isPending } = useCustomMutation({ mutationFn, onSuccess });
 
+    const options = {
+        roles : userRoles
+    }
+
     function onSubmit(data) {
         mutate(data);
     }
+
+    
 
     return (
         <div className="w-full max-w-md mx-auto">
@@ -35,6 +42,7 @@ export default function LoginForm() {
                             key={field.name}
                             register={register}
                             error={errors[field.name]?.message}
+                            options={options[field.optionsKey]}
                             {...field}
                         />
                     ))}

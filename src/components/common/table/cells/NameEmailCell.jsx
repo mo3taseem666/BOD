@@ -10,7 +10,7 @@ export default function NameEmailCell({ info }) {
 
     return (
         <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+            <div className="w-8 h-8 uppercase bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
                 {initials}
             </div>
             <div>

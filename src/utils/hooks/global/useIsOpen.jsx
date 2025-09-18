@@ -10,9 +10,9 @@ export default function useIsOpen() {
 
     const toggle = {
         add: () => setIsOpen({ ...isOpen, add: !isOpen.add }),
-        edit: () => setIsOpen({ ...isOpen, edit: !isOpen.edit }),
-        delete: () => setIsOpen({ ...isOpen, delete: !isOpen.delete }),
-        view: () => setIsOpen({ ...isOpen, view: !isOpen.view })
+        edit: (value) => setIsOpen({ ...isOpen, edit: value || !isOpen.edit }),
+        delete: (value) => setIsOpen({ ...isOpen, delete: value || !isOpen.delete }),
+        view: (value) => setIsOpen({ ...isOpen, view: value || !isOpen.view })
     };
 
     return { isOpen, toggle };

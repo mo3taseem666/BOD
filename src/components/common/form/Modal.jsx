@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 const Modal = ({
-    isOpen,
+    isOpen=true,
     setIsOpen,
     children,
     closeOnBackdrop = true,
